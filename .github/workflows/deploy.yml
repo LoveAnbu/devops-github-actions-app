@@ -29,7 +29,7 @@ jobs:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/myapp:latest
           format: table
           severity: CRITICAL,HIGH
-          exit-code: '0'   # change to '1' later to fail pipeline on vulnerabilities
+          exit-code: '1'   # change to '1' later to fail pipeline on vulnerabilities
 
       # 5. Push image to DockerHub
       - name: Push Image
@@ -39,11 +39,14 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            docker stop myapp || true
-            docker rm myapp || true
-            docker pull ${{ secrets.DOCKER_USERNAME }}/myapp:latest
-            docker run -d -p 8000:8000 --name myapp ${{ secrets.DOCKER_USERNAME }}/myapp:latest
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+              docker stop myapp || true
+              docker rm myapp || true
+              docker pull ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
+              docker run -d -p 8000:8000 --name myapp ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
+              sleep 5
+              curl -f http://localhost:8000 || exit 1
+              docker image prune -af
