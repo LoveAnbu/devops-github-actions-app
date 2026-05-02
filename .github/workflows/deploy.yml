@@ -16,7 +16,7 @@ jobs:
 
       # 2. SonarCloud Scan
       - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@2.1.0
+        uses: sonarsource/sonarcloud-github-action@master
         with:
           args: >
             -Dsonar.projectKey=LoveAnbu_devops-github-actions-app
