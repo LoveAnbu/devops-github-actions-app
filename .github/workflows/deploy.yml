@@ -23,11 +23,6 @@ jobs:
             -Dsonar.organization=loveanbu
             -Dsonar.sources=.
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      
-        timeout-minutes: 5
-        env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  
 
       # 3. Docker login
