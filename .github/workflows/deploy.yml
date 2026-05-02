@@ -23,7 +23,7 @@ jobs:
           docker tag ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/myapp:latest
 
       - name: Scan Docker Image with Trivy
-        uses: uses: aquasecurity/trivy-action@master
+        uses: uses: aquasecurity/trivy-action@0.24.0
         with:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/myapp:latest
           format: table
