@@ -9,38 +9,33 @@ jobs:
 deploy:
 runs-on: ubuntu-latest
 
+```
 steps:
-  # 1. Checkout code
   - name: Checkout
     uses: actions/checkout@v3
 
-  # 2. Login to DockerHub
   - name: Login to DockerHub
     run: |
       echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-  # 3. Build Docker image
   - name: Build Docker Image
     run: |
       docker build -t ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} .
       docker tag ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/myapp:latest
 
-  # 4. Scan image with Trivy (DO NOT fail pipeline yet)
   - name: Scan Docker Image with Trivy
     uses: aquasecurity/trivy-action@0.20.0
     with:
       image-ref: ${{ secrets.DOCKER_USERNAME }}/myapp:latest
       format: table
       severity: CRITICAL,HIGH
-      exit-code: '0'   # change to '1' later for strict security
+      exit-code: '0'
 
-  # 5. Push image to DockerHub
   - name: Push Image
     run: |
       docker push ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
       docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
 
-  # 6. Deploy to EC2
   - name: Deploy to EC2
     uses: appleboy/ssh-action@v1.0.0
     with:
@@ -55,3 +50,4 @@ steps:
         sleep 5
         curl -f http://localhost:8000 || exit 1
         docker image prune -af
+```
