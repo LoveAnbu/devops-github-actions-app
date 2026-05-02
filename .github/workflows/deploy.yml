@@ -121,4 +121,4 @@ jobs:
             exit 1
             fi
 
-  docker image prune -af
+            docker image prune -af
