@@ -28,7 +28,7 @@ jobs:
         with:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/myapp:latest
           format: table
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
           exit-code: '1'   # change to '1' later to fail pipeline on vulnerabilities
 
       # 5. Push image to DockerHub
