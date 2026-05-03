@@ -4,9 +4,10 @@ on:
   push:
     branches:
       - main
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -16,26 +17,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2. Gitleaks
       - name: Scan for Secrets (Gitleaks)
         uses: gitleaks/gitleaks-action@v2
         with:
-          args: detect --source . --verbose --redact  
+          args: detect --source . --verbose --redact
 
+      # 3. OWASP
       - name: OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
-         project: "myapp"
-         path: "."
-         format: "HTML"
-         out: "reports"    
+          project: "myapp"
+          path: "."
+          format: "HTML"
+          out: "reports"
 
       - name: Upload OWASP Report
         uses: actions/upload-artifact@v4
         with:
-         name: dependency-check-report
-         path: reports   
+          name: dependency-check-report
+          path: reports
 
-      # 2. SonarCloud Scan
+      # 4. Sonar
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
         with:
@@ -44,20 +47,20 @@ jobs:
             -Dsonar.organization=loveanbu
             -Dsonar.sources=.
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # 3. Docker login
+      # 5. Docker login
       - name: Login to DockerHub
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # 4. Build image
+      # 6. Build image
       - name: Build Docker Image
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} .
           docker tag ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/myapp:latest
 
-      # 5. Trivy scan
+      # 7. Trivy
       - name: Scan Docker Image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
@@ -66,24 +69,26 @@ jobs:
           severity: CRITICAL
           exit-code: '0'
 
-      # 6. Push
+      # 8. Push image
       - name: Push Image
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
           docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
 
-       - name: Configure AWS
-         uses: aws-actions/configure-aws-credentials@v4
-         with:
+      # 9. Configure AWS
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-        - name: Update kubeconfig
-          run: aws eks update-kubeconfig --region us-east-1 --name my-cluster-v2   
+      # 10. Update kubeconfig
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region us-east-1 --name my-cluster-v2
 
-      # 7. Deploy
-        - name: Deploy to EKS
-          run: |
-            kubectl set image deployment/myapp myapp=${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} --record || \
-            kubectl apply -f k8s/
+      # 11. Deploy to EKS
+      - name: Deploy to EKS
+        run: |
+          kubectl set image deployment/myapp myapp=${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} --record || \
+          kubectl apply -f k8s/
