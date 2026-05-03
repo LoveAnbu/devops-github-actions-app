@@ -80,5 +80,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            kubectl set image deployment/myapp myapp=${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} --record || \
-            kubectl apply -f ~/devops-github-actions-app/k8s
+            cd ~/devops-github-actions-app
+            git pull origin main
+            kubectl apply -f k8s/
+            kubectl set image deployment/myapp myapp=${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
+            kubectl rollout status deployment/myapp
