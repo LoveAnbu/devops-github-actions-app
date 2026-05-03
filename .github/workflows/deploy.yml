@@ -90,5 +90,6 @@ jobs:
       # 11. Deploy to EKS
       - name: Deploy to EKS
         run: |
-          kubectl set image deployment/myapp myapp=${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} --record || \
           kubectl apply -f k8s/
+          kubectl set image deployment/myapp myapp=${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
+          kubectl rollout status deployment/myapp
