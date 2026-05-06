@@ -19,7 +19,7 @@ It automates:
 
 ## 🏗️ Architecture
 
-![Architecture Diagram](docs/assets/architecture
+![Architecture Diagram](assets/architecture
 
 ---
 
